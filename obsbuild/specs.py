@@ -11,10 +11,15 @@ COMPOSITE_BLUR_KIND = "obs_composite_blur"
 MOVE_TRANSITION_KIND = "move_transition"
 
 CHAT_CSS = """
-body { background: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }
+body { background: rgba(0,0,0,0) !important; margin: 0; overflow: hidden;
+       -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 96px); }
 * { font-family: "Inter", "Inter Variable", -apple-system, sans-serif !important; }
 .chat_line { background: rgba(18,20,24,.82); border: 1px solid rgba(255,255,255,.10);
-             border-radius: 12px; padding: 8px 12px !important; margin: 0 0 8px !important; color: #F5F6F8; }
+             border-radius: 12px; padding: 8px 12px !important; margin: 0 0 8px !important; color: #F5F6F8;
+             font-size: 24px !important; line-height: 1.4 !important; }
+.nick { font-weight: 700 !important; margin-right: 8px; }
+.colon { display: none !important; }
+.message { font-weight: 500 !important; }
 """
 
 DUCK = {"ratio": 4.0, "threshold": -28.0, "attack_time": 10, "release_time": 400,
@@ -26,6 +31,14 @@ def _local(path: Path, w: int = 1920, h: int = 1080, fps: int = 30) -> dict:
             "fps_custom": True, "fps": fps, "restart_when_active": True, "shutdown": False,
             "reroute_audio": False,
             "css": ""}  # OBS's default CSS forces a transparent <body>, which would erase our backgrounds
+
+
+def chat_url(kit: dict) -> str:
+    """jChat (free, 7TV/BTTV/FFZ emotes). Bots are hidden by default; !commands hidden; lines fade after 30 s."""
+    if kit.get("chat_url"):
+        return kit["chat_url"]
+    return (f"https://www.giambaj.it/twitch/jchat/v2/?channel={kit['twitch_login']}"
+            "&size=2&font=0&fade=30&hide_commands=true&animate=true")
 
 
 def input_specs(kit: dict, root: Path) -> list[tuple[str, str, str, dict]]:
@@ -40,8 +53,8 @@ def input_specs(kit: dict, root: Path) -> list[tuple[str, str, str, dict]]:
                                               "close_when_inactive": False}),
         (L.LIBRARY, L.GAME, "screen_capture", {"type": 1, "show_cursor": False, "hide_obs": True}),
         (L.LIBRARY, L.CONTENT, "screen_capture", {"type": 1, "show_cursor": True, "hide_obs": True}),
-        (L.LIBRARY, L.CHAT, "browser_source", {"is_local_file": False, "url": kit["chat_url"],
-                                               "width": 448, "height": 720, "fps_custom": True, "fps": 30,
+        (L.LIBRARY, L.CHAT, "browser_source", {"is_local_file": False, "url": chat_url(kit),
+                                               "width": 496, "height": 720, "fps_custom": True, "fps": 30,
                                                "css": CHAT_CSS, "shutdown": False}),
         (L.LIBRARY, L.ALERTS, "browser_source", {"is_local_file": False, "url": kit["streamelements_alertbox_url"],
                                                  "width": 1920, "height": 1080, "fps_custom": True, "fps": 60,

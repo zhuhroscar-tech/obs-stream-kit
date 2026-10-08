@@ -29,6 +29,16 @@ def test_apply_all_is_idempotent(fake, tmp_path):
     assert [c for c, _ in fake.calls[n:] if c.startswith("Create")] == []
 
 
+def test_chat_url_defaults_to_jchat_for_the_twitch_login(fake, tmp_path):
+    k = kit(tmp_path)
+    del k["chat_url"]
+    k["twitch_login"] = "oscar"
+    apply_all(fake, k, tmp_path)
+    url = fake.inputs[L.CHAT][1]["url"]
+    assert url.startswith("https://www.giambaj.it/twitch/jchat/v2/?channel=oscar&")
+    assert "hide_commands=true" in url and "fade=30" in url
+
+
 def test_local_overlays_disable_obs_default_transparent_body_css(fake, tmp_path):
     apply_all(fake, kit(tmp_path), tmp_path)
     for name, (kind, settings) in fake.inputs.items():
