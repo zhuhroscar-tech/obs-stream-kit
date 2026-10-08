@@ -1,0 +1,34 @@
+from obsbuild import layout as L
+from obsbuild.build import PROFILE_PARAMS, apply_all, configure_output
+
+
+def kit(tmp_path):
+    return {"twitch_login": "x", "display_name": "X", "socials": ["a"], "starting_minutes": 5,
+            "chat_url": "https://chat", "streamelements_alertbox_url": "https://se",
+            "cam_device_name": "oscar Camera", "mic_device_name": "oscar Microphone",
+            "music_file": str(tmp_path / "m.mp3")}
+
+
+def test_apply_all_builds_every_scene_with_expected_items(fake, tmp_path):
+    apply_all(fake, kit(tmp_path), tmp_path)
+    for s in L.MAIN_SCENES + L.SOURCE_SCENES:
+        assert s in fake.scenes
+    assert set(fake.scenes["Gaming"]) >= {L.GAME, L.CAM, L.BRAND, L.CHAT, L.ALERTS, L.AUDIO}
+    assert fake.inputs["Camera"][1]["device"] == "UUID-1"
+    assert fake.inputs["Mic"][1]["device_id"] == "MIC-1"
+    assert fake.filters["Desktop Audio"]["Duck Under Voice"][1]["sidechain_source"] == "Mic"
+
+
+def test_apply_all_is_idempotent(fake, tmp_path):
+    apply_all(fake, kit(tmp_path), tmp_path)
+    n = len(fake.calls)
+    log = apply_all(fake, kit(tmp_path), tmp_path)
+    assert log == []
+    assert [c for c, _ in fake.calls[n:] if c.startswith("Create")] == []
+
+
+def test_configure_output_sets_video_and_every_profile_param(fake):
+    configure_output(fake)
+    assert [c for c, _ in fake.calls].count("SetProfileParameter") == len(PROFILE_PARAMS)
+    video = next(d for c, d in fake.calls if c == "SetVideoSettings")
+    assert (video["outputWidth"], video["outputHeight"], video["fpsNumerator"]) == (1280, 720, 60)
