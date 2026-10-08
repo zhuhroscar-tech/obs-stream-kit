@@ -1,0 +1,17 @@
+:root {
+  --bg: #0B0C0F;
+  --surface: rgba(18, 20, 24, .82);
+  --stroke: rgba(255, 255, 255, .10);
+  --text: #F5F6F8;
+  --text-2: #A1A7B0;
+  --accent: #C8FF2E;
+  --font: "Inter", "Inter Variable", -apple-system, system-ui, sans-serif;
+}
+html, body {
+  margin: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}

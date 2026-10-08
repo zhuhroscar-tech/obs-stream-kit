@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="theme.css">
+<style>
+  body { width: 400px; height: 44px; overflow: hidden; }
+  .chip { box-sizing: border-box; height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 16px; max-width: 400px;
+          background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px; font-size: 18px; font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  #text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .3s; }
+</style>
+</head>
+<body>
+<div class="chip"><span class="dot"></span><span id="text"></span></div>
+<script src="config.js"></script>
+<script src="lib/kit-lib.js"></script>
+<script>
+  var kit = window.KIT || { socials: [] };
+  var items = (kit.socials && kit.socials.length) ? kit.socials : ["twitch.tv/" + (kit.twitch_login || "")];
+  var el = document.getElementById("text");
+  var last = -1;
+  function tick() {
+    var i = KitLib.rotateIndex(items.length, Date.now(), 8000);
+    if (i === last) return;
+    last = i;
+    el.style.opacity = 0;
+    setTimeout(function () { el.textContent = items[i]; el.style.opacity = 1; }, 300);
+  }
+  tick();
+  setInterval(tick, 500);
+</script>
+</body>
+</html>
