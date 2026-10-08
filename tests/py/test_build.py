@@ -27,6 +27,13 @@ def test_apply_all_is_idempotent(fake, tmp_path):
     assert [c for c, _ in fake.calls[n:] if c.startswith("Create")] == []
 
 
+def test_local_overlays_disable_obs_default_transparent_body_css(fake, tmp_path):
+    apply_all(fake, kit(tmp_path), tmp_path)
+    for name, (kind, settings) in fake.inputs.items():
+        if kind == "browser_source" and settings.get("is_local_file"):
+            assert settings["css"] == "", name
+
+
 def test_configure_output_sets_video_and_every_profile_param(fake):
     configure_output(fake)
     assert [c for c, _ in fake.calls].count("SetProfileParameter") == len(PROFILE_PARAMS)

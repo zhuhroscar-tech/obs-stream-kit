@@ -24,7 +24,8 @@ DUCK = {"ratio": 4.0, "threshold": -28.0, "attack_time": 10, "release_time": 400
 def _local(path: Path, w: int = 1920, h: int = 1080, fps: int = 30) -> dict:
     return {"is_local_file": True, "local_file": str(path), "width": w, "height": h,
             "fps_custom": True, "fps": fps, "restart_when_active": True, "shutdown": False,
-            "reroute_audio": False}
+            "reroute_audio": False,
+            "css": ""}  # OBS's default CSS forces a transparent <body>, which would erase our backgrounds
 
 
 def input_specs(kit: dict, root: Path) -> list[tuple[str, str, str, dict]]:
