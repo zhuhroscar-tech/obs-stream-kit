@@ -1,4 +1,4 @@
-"""Usage: .venv/bin/python -m obsbuild {render|probe|apply|doctor|snapshot|check-audio}"""
+"""Usage: .venv/bin/python -m obsbuild {render|probe|apply|finish|doctor|snapshot|check-audio|check-hotkeys}"""
 from __future__ import annotations
 
 import argparse
@@ -70,14 +70,82 @@ def check_audio(c) -> int:
     return 1 if fails else 0
 
 
+def finish_files() -> int:
+    """Edit OBS's own files for what obs-websocket cannot do. OBS must be closed."""
+    import shutil
+    from .build import COLLECTION, PROFILE
+    from .finish import finish_collection, finish_profile_ini
+    if subprocess.run(["pgrep", "-x", "OBS"], capture_output=True).returncode == 0:
+        print("✗ quit OBS first (it rewrites these files on exit)")
+        return 1
+    base = Path.home() / "Library" / "Application Support" / "obs-studio" / "basic"
+    coll = base / "scenes" / (COLLECTION.replace(" ", "_") + ".json")
+    prof = base / "profiles" / PROFILE.replace(" ", "_") / "basic.ini"
+    backups = ROOT / "out" / "backups" / time.strftime("%Y%m%d-%H%M%S")
+    backups.mkdir(parents=True, exist_ok=True)
+    for f in (coll, prof):
+        shutil.copy2(f, backups / f.name)
+    coll.write_text(json.dumps(finish_collection(json.loads(coll.read_text(encoding="utf-8"))), indent=4),
+                    encoding="utf-8")
+    prof.write_text(finish_profile_ini(prof.read_text(encoding="utf-8")), encoding="utf-8")
+    print(f"✓ Move transition + hotkeys written (backup: {backups.relative_to(ROOT)})")
+    return 0
+
+
+def check_hotkeys(c) -> int:
+    """Inject each scene hotkey into OBS and confirm the program scene follows."""
+    from .finish import SCENE_KEYS
+    fails = 0
+    original = c.call("GetCurrentProgramScene")["currentProgramSceneName"]
+    try:
+        for scene, key in SCENE_KEYS.items():
+            c.call("TriggerHotkeyByKeySequence", {"keyId": f"OBS_KEY_{key}",
+                                                  "keyModifiers": {"control": True, "alt": True}})
+            time.sleep(1.0)
+            got = c.call("GetCurrentProgramScene")["currentProgramSceneName"]
+            ok = got == scene
+            fails += not ok
+            print(f"{'✓' if ok else '✗'} ⌃⌥{key} → {got} (want {scene})")
+
+        def press(key, shift=False):
+            mods = {"control": True, "alt": True, **({"shift": True} if shift else {})}
+            c.call("TriggerHotkeyByKeySequence", {"keyId": f"OBS_KEY_{key}", "keyModifiers": mods})
+            time.sleep(0.5)
+
+        chat_id = c.call("GetSceneItemId", {"sceneName": "Gaming", "sourceName": "Chat"})["sceneItemId"]
+        checks = (
+            ("⌃⌥M mute mic", lambda: press("M"),
+             lambda: c.call("GetInputMute", {"inputName": "Mic"})["inputMuted"] is True),
+            ("⌃⌥⇧M unmute mic", lambda: press("M", True),
+             lambda: c.call("GetInputMute", {"inputName": "Mic"})["inputMuted"] is False),
+            ("⌃⌥C show chat in Gaming", lambda: press("C"),
+             lambda: c.call("GetSceneItemEnabled", {"sceneName": "Gaming", "sceneItemId": chat_id})["sceneItemEnabled"]),
+            ("⌃⌥⇧C hide chat in Gaming", lambda: press("C", True),
+             lambda: not c.call("GetSceneItemEnabled", {"sceneName": "Gaming", "sceneItemId": chat_id})["sceneItemEnabled"]),
+        )
+        for label, act, verify in checks:
+            act()
+            ok = bool(verify())
+            fails += not ok
+            print(f"{'✓' if ok else '✗'} {label}")
+    finally:
+        c.call("SetCurrentProgramScene", {"sceneName": original})
+    return 1 if fails else 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="obsbuild")
-    ap.add_argument("command", choices=["render", "probe", "apply", "doctor", "snapshot", "check-audio"])
+    ap.add_argument("command", choices=["render", "probe", "apply", "finish", "doctor", "snapshot",
+                                        "check-audio", "check-hotkeys"])
     cmd = ap.parse_args(argv).command
     if cmd == "render":
         render_files(load_kit())
         return 0
+    if cmd == "finish":
+        return finish_files()
     c = client()
+    if cmd == "check-hotkeys":
+        return check_hotkeys(c)
     if cmd == "probe":
         probe(c)
         return 0
