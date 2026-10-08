@@ -50,11 +50,16 @@ class Box:
         return self.x >= 0 and self.y >= 0 and self.right <= W and self.bottom <= H
 
 
+ALIGN_CENTER = 0
+ALIGN_BOTTOM_LEFT = 9   # OBS_ALIGN_LEFT (1) | OBS_ALIGN_BOTTOM (8): chat grows upward from the bottom edge
+
+
 @dataclass(frozen=True)
 class Item:
     source: str
     box: Box
     visible: bool = True
+    align: int = ALIGN_CENTER   # where the source sits inside its box when aspect ratios differ
 
 
 FULL = Box(0, 0, W, H)
@@ -65,7 +70,7 @@ def _gaming() -> tuple[Item, ...]:
     cam = Box(MARGIN, H - MARGIN - 225, 400, 225)
     brand = Box(MARGIN, cam.y - GAP - 44, 400, 44)
     chat = Box(W - MARGIN - 420, H - MARGIN - 620, 420, 620)
-    return (Item(GAME, FULL), Item(CAM, cam), Item(BRAND, brand), Item(CHAT, chat, visible=False))
+    return (Item(GAME, FULL), Item(CAM, cam), Item(BRAND, brand), Item(CHAT, chat, visible=False, align=ALIGN_BOTTOM_LEFT))
 
 
 def _just_chatting() -> tuple[Item, ...]:
@@ -73,7 +78,7 @@ def _just_chatting() -> tuple[Item, ...]:
     chat_x = cam.right + MARGIN
     chat = Box(chat_x, 180, W - MARGIN - chat_x, 720)
     brand = Box(MARGIN, cam.bottom + GAP, 400, 44)
-    return (Item(SCREEN["bg"], FULL), Item(CAM, cam), Item(CHAT, chat), Item(BRAND, brand))
+    return (Item(SCREEN["bg"], FULL), Item(CAM, cam), Item(CHAT, chat, align=ALIGN_BOTTOM_LEFT), Item(BRAND, brand))
 
 
 def _react() -> tuple[Item, ...]:
@@ -82,11 +87,11 @@ def _react() -> tuple[Item, ...]:
     cam = Box(side_x, MARGIN, W - MARGIN - side_x, 225)
     chat = Box(side_x, cam.bottom + GAP, cam.w, H - MARGIN - (cam.bottom + GAP))
     brand = Box(MARGIN, content.bottom + GAP, 400, 44)
-    return (Item(SCREEN["bg"], FULL), Item(CONTENT, content), Item(CAM, cam), Item(CHAT, chat), Item(BRAND, brand))
+    return (Item(SCREEN["bg"], FULL), Item(CONTENT, content), Item(CAM, cam), Item(CHAT, chat, align=ALIGN_BOTTOM_LEFT), Item(BRAND, brand))
 
 
 def _holding(mode: str) -> tuple[Item, ...]:
-    return (Item(SCREEN[mode], FULL), Item(CHAT, SIDE_CHAT))
+    return (Item(SCREEN[mode], FULL), Item(CHAT, SIDE_CHAT, align=ALIGN_BOTTOM_LEFT))
 
 
 def scenes() -> dict[str, tuple[Item, ...]]:

@@ -35,6 +35,15 @@ def test_place_sends_top_left_bounded_transform_and_visibility(fake):
     assert ("SetSceneItemEnabled", {"sceneName": "S", "sceneItemId": iid, "sceneItemEnabled": False}) in fake.calls
 
 
+def test_place_uses_item_bounds_alignment(fake):
+    fake.scenes["S"] = {}
+    a = Applier(fake)
+    iid = a.ensure_item("S", "Chat")
+    a.place("S", iid, Item("Chat", Box(0, 0, 10, 10), align=L.ALIGN_BOTTOM_LEFT))
+    t = [d for c, d in fake.calls if c == "SetSceneItemTransform"][-1]["sceneItemTransform"]
+    assert t["boundsAlignment"] == 9
+
+
 def test_build_scene_orders_items_bottom_to_top(fake):
     Applier(fake).build_scene("S", (Item("A", L.FULL), Item("B", L.FULL)))
     idx = [(d["sceneItemId"], d["sceneItemIndex"]) for c, d in fake.calls if c == "SetSceneItemIndex"]

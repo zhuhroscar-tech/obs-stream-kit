@@ -60,7 +60,7 @@ class Applier:
         b = item.box
         self.c.call("SetSceneItemTransform", {"sceneName": scene, "sceneItemId": item_id, "sceneItemTransform": {
             "positionX": b.x, "positionY": b.y, "alignment": ALIGN_TOP_LEFT, "rotation": 0.0,
-            "boundsType": "OBS_BOUNDS_SCALE_INNER", "boundsAlignment": 0,
+            "boundsType": "OBS_BOUNDS_SCALE_INNER", "boundsAlignment": item.align,
             "boundsWidth": b.w, "boundsHeight": b.h,
             "cropLeft": 0, "cropRight": 0, "cropTop": 0, "cropBottom": 0}})
         self.c.call("SetSceneItemEnabled", {"sceneName": scene, "sceneItemId": item_id, "sceneItemEnabled": item.visible})

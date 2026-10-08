@@ -41,6 +41,13 @@ def test_cam_is_always_16_by_9():
         assert b.w * 9 == b.h * 16, scene
 
 
+def test_chat_is_anchored_bottom_left_everywhere():
+    for scene, items in L.scenes().items():
+        for it in items:
+            if it.source == L.CHAT:
+                assert it.align == L.ALIGN_BOTTOM_LEFT, scene
+
+
 def test_privacy_shows_only_the_privacy_screen_with_music():
     assert [i.source for i in L.scenes()["Privacy"]] == [L.SCREEN["privacy"], L.MUSIC]
 
