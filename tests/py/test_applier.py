@@ -41,6 +41,20 @@ def test_build_scene_orders_items_bottom_to_top(fake):
     assert idx == [(fake.scenes["S"]["A"], 0), (fake.scenes["S"]["B"], 1)]
 
 
+def test_build_scene_prune_removes_items_not_in_spec(fake):
+    a = Applier(fake)
+    a.build_scene("S", (Item("A", L.FULL), Item("Old", L.FULL)))
+    a.build_scene("S", (Item("A", L.FULL),), prune=True)
+    assert set(fake.scenes["S"]) == {"A"}
+
+
+def test_build_scene_without_prune_keeps_extra_items(fake):
+    a = Applier(fake)
+    a.build_scene("S", (Item("A", L.FULL), Item("Mine", L.FULL)))
+    a.build_scene("S", (Item("A", L.FULL),))
+    assert set(fake.scenes["S"]) == {"A", "Mine"}
+
+
 def test_ensure_filter_creates_then_updates(fake):
     a = Applier(fake)
     a.ensure_filter("Mic", "Limiter", "limiter_filter", {"threshold": -3.0})

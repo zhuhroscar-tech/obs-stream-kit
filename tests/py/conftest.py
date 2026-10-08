@@ -50,6 +50,15 @@ class FakeObs:
             raise ObsError(600, "No source was found")
 
     def _CreateSceneItem(self, d): return {"sceneItemId": self._add(d["sceneName"], d["sourceName"])}
+
+    def _GetSceneItemList(self, d):
+        return {"sceneItems": [{"sourceName": s, "sceneItemId": i} for s, i in self.scenes[d["sceneName"]].items()]}
+
+    def _RemoveSceneItem(self, d):
+        items = self.scenes[d["sceneName"]]
+        for s, i in list(items.items()):
+            if i == d["sceneItemId"]:
+                del items[s]
     def _GetSourceFilterList(self, d): return {"filters": [{"filterName": n} for n in self.filters.get(d["sourceName"], {})]}
 
     def _CreateSourceFilter(self, d):

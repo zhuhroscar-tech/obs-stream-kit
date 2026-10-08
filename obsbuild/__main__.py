@@ -1,4 +1,4 @@
-"""Usage: .venv/bin/python -m obsbuild {render|probe|apply|doctor|snapshot|check-macros}"""
+"""Usage: .venv/bin/python -m obsbuild {render|probe|apply|doctor|snapshot|check-audio}"""
 from __future__ import annotations
 
 import argparse
@@ -49,21 +49,30 @@ def probe(c) -> None:
             print(kind, "defaults unavailable:", e)
 
 
-def check_macros(c) -> int:
+def check_audio(c) -> int:
+    """Mic/desktop audio are routed by scene membership; verify against OBS's live 'active' state."""
+    from . import layout as L
     fails = 0
-    for scene, want in (("Privacy", True), ("Gaming", False), ("BRB", True), ("Just Chatting", False)):
-        c.call("SetCurrentProgramScene", {"sceneName": scene})
-        time.sleep(1.5)
-        muted = c.call("GetInputMute", {"inputName": "Mic"})["inputMuted"]
-        ok = muted == want
-        fails += not ok
-        print(f"{'✓' if ok else '✗'} {scene:<14} mic muted={muted} (want {want})")
+    original = c.call("GetCurrentProgramScene")["currentProgramSceneName"]
+    try:
+        for scene, items in L.scenes().items():
+            c.call("SetCurrentProgramScene", {"sceneName": scene})
+            time.sleep(1.0)
+            names = [i.source for i in items]
+            for src, item in (("Mic", L.MIC), ("Desktop Audio", L.AUDIO)):
+                want = item in names
+                got = c.call("GetSourceActive", {"sourceName": src})["videoActive"]
+                ok = got == want
+                fails += not ok
+                print(f"{'✓' if ok else '✗'} {scene:<14} {src:<14} live={got} (want {want})")
+    finally:
+        c.call("SetCurrentProgramScene", {"sceneName": original})
     return 1 if fails else 0
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="obsbuild")
-    ap.add_argument("command", choices=["render", "probe", "apply", "doctor", "snapshot", "check-macros"])
+    ap.add_argument("command", choices=["render", "probe", "apply", "doctor", "snapshot", "check-audio"])
     cmd = ap.parse_args(argv).command
     if cmd == "render":
         render_files(load_kit())
@@ -96,7 +105,7 @@ def main(argv=None) -> int:
         for p in snapshot_all(c, ROOT / "out" / "snapshots", L.MAIN_SCENES):
             print(f"✓ {p.relative_to(ROOT)}")
         return 0
-    return check_macros(c)
+    return check_audio(c)
 
 
 if __name__ == "__main__":

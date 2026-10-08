@@ -65,13 +65,18 @@ class Applier:
             "cropLeft": 0, "cropRight": 0, "cropTop": 0, "cropBottom": 0}})
         self.c.call("SetSceneItemEnabled", {"sceneName": scene, "sceneItemId": item_id, "sceneItemEnabled": item.visible})
 
-    def build_scene(self, scene: str, items) -> None:
+    def build_scene(self, scene: str, items, prune: bool = False) -> None:
         self.ensure_scene(scene)
         ids = []
         for it in items:
             iid = self.ensure_item(scene, it.source)
             self.place(scene, iid, it)
             ids.append(iid)
+        if prune:
+            for si in self.c.call("GetSceneItemList", {"sceneName": scene})["sceneItems"]:
+                if si["sceneItemId"] not in ids:
+                    self.c.call("RemoveSceneItem", {"sceneName": scene, "sceneItemId": si["sceneItemId"]})
+                    self.log.append(f"- item {scene} / {si['sourceName']}")
         for index, iid in enumerate(ids):
             self.c.call("SetSceneItemIndex", {"sceneName": scene, "sceneItemId": iid, "sceneItemIndex": index})
 

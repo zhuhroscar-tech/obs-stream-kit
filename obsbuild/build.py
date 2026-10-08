@@ -41,10 +41,16 @@ def apply_all(client, kit: dict, root: Path) -> list[str]:
         a.ensure_input(scene, name, kind, settings)
     a.select_device("Camera", "device", kit["cam_device_name"])
     a.select_device("Mic", "device_id", kit["mic_device_name"])
-    a.build_scene(L.CAM, (L.Item("Camera", L.FULL),))
+    a.build_scene(L.CAM, (L.Item("Camera", L.FULL),), prune=True)
+    a.build_scene(L.MIC, (L.Item("Mic", L.FULL),), prune=True)
+    a.build_scene(L.AUDIO, (L.Item("Desktop Audio", L.FULL),), prune=True)
+    a.build_scene(L.MUSIC, (L.Item("Music", L.FULL),), prune=True)
     for source, name, kind, settings in filter_specs(root):
         a.ensure_filter(source, name, kind, settings)
     client.call("SetInputVolume", {"inputName": "Music", "inputVolumeDb": -20.0})
     for scene, items in L.scenes().items():
-        a.build_scene(scene, items)
+        a.build_scene(scene, items, prune=True)   # the kit owns these scenes; stale items are removed
+    # The panic button must be instant.
+    client.call("SetSceneSceneTransitionOverride",
+                {"sceneName": "Privacy", "transitionName": "Cut", "transitionDuration": 50})
     return a.log

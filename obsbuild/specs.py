@@ -33,7 +33,7 @@ def input_specs(kit: dict, root: Path) -> list[tuple[str, str, str, dict]]:
     ov = root / "overlays"
     specs = [
         (L.CAM, "Camera", CAMERA_KIND, {}),
-        (L.AUDIO, "Mic", "coreaudio_input_capture", {}),
+        (L.MIC, "Mic", "coreaudio_input_capture", {}),
         (L.AUDIO, "Desktop Audio", "sck_audio_capture", {}),
         (L.MUSIC, "Music", "ffmpeg_source", {"local_file": str(Path(kit["music_file"]).expanduser()),
                                               "looping": True, "restart_on_activate": False,

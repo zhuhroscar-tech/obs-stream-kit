@@ -41,10 +41,19 @@ def test_cam_is_always_16_by_9():
         assert b.w * 9 == b.h * 16, scene
 
 
-def test_privacy_shows_nothing_but_the_privacy_screen():
-    assert [i.source for i in L.scenes()["Privacy"]] == [L.SCREEN["privacy"], L.AUDIO]
+def test_privacy_shows_only_the_privacy_screen_with_music():
+    assert [i.source for i in L.scenes()["Privacy"]] == [L.SCREEN["privacy"], L.MUSIC]
 
 
-def test_every_scene_carries_audio():
+def test_mic_is_physically_absent_from_brb_and_privacy():
+    # Audio only plays from sources in the program scene, so leaving Mic out is a hard mute
+    # that cannot fail the way an automation macro can.
     for scene, items in L.scenes().items():
-        assert L.AUDIO in [i.source for i in items], scene
+        has_mic = L.MIC in [i.source for i in items]
+        assert has_mic == (scene not in ("BRB", "Privacy")), scene
+
+
+def test_desktop_audio_only_in_live_scenes():
+    for scene, items in L.scenes().items():
+        has_desktop = L.AUDIO in [i.source for i in items]
+        assert has_desktop == (scene in ("Gaming", "Just Chatting", "React")), scene

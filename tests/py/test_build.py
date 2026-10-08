@@ -13,7 +13,9 @@ def test_apply_all_builds_every_scene_with_expected_items(fake, tmp_path):
     apply_all(fake, kit(tmp_path), tmp_path)
     for s in L.MAIN_SCENES + L.SOURCE_SCENES:
         assert s in fake.scenes
-    assert set(fake.scenes["Gaming"]) >= {L.GAME, L.CAM, L.BRAND, L.CHAT, L.ALERTS, L.AUDIO}
+    assert set(fake.scenes["Gaming"]) >= {L.GAME, L.CAM, L.BRAND, L.CHAT, L.ALERTS, L.AUDIO, L.MIC}
+    assert set(fake.scenes[L.MIC]) == {"Mic"}
+    assert set(fake.scenes[L.AUDIO]) == {"Desktop Audio"}
     assert fake.inputs["Camera"][1]["device"] == "UUID-1"
     assert fake.inputs["Mic"][1]["device_id"] == "MIC-1"
     assert fake.filters["Desktop Audio"]["Duck Under Voice"][1]["sidechain_source"] == "Mic"

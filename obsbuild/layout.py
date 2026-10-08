@@ -10,7 +10,8 @@ GAP = 16
 # Source names. Move transition animates items whose names match across scenes: never rename one in isolation.
 LIBRARY = "[SRC] Library"
 CAM = "[SRC] Cam"
-AUDIO = "[SRC] Audio"
+AUDIO = "[SRC] Audio"   # desktop/game audio only
+MIC = "[SRC] Mic"
 MUSIC = "[SRC] Music"
 GAME = "Game"
 CONTENT = "Content"
@@ -20,7 +21,7 @@ BRAND = "Brand Chip"
 GAME_BLUR = "Game Blur"
 SCREEN = {m: f"Screen {m.capitalize()}" for m in ("starting", "brb", "ending", "privacy", "bg")}
 
-SOURCE_SCENES = (LIBRARY, CAM, AUDIO, MUSIC)
+SOURCE_SCENES = (LIBRARY, CAM, AUDIO, MIC, MUSIC)
 MAIN_SCENES = ("Starting Soon", "Gaming", "Just Chatting", "React", "BRB", "Ending", "Privacy")
 
 # Where the StreamElements AlertBox widget must sit inside its 1920x1080 SE overlay (x, y, w, h).
@@ -89,15 +90,18 @@ def _holding(mode: str) -> tuple[Item, ...]:
 
 
 def scenes() -> dict[str, tuple[Item, ...]]:
-    """Main scenes, items ordered bottom -> top."""
-    top = (Item(ALERTS, FULL), Item(AUDIO, FULL))
-    music = Item(MUSIC, FULL)
+    """Main scenes, items ordered bottom -> top.
+
+    Audio routing is by presence: Mic is left out of BRB/Privacy (hard mute), desktop audio
+    only plays in live scenes so setup noise / Discord never leaks on holding screens."""
+    alerts, mic, desktop, music = Item(ALERTS, FULL), Item(MIC, FULL), Item(AUDIO, FULL), Item(MUSIC, FULL)
+    live = (alerts, desktop, mic)
     return {
-        "Starting Soon": (*_holding("starting"), music, *top),
-        "Gaming": (*_gaming(), *top),
-        "Just Chatting": (*_just_chatting(), *top),
-        "React": (*_react(), *top),
-        "BRB": (Item(GAME_BLUR, FULL), *_holding("brb"), music, *top),
-        "Ending": (*_holding("ending"), music, *top),
-        "Privacy": (Item(SCREEN["privacy"], FULL), Item(AUDIO, FULL)),
+        "Starting Soon": (*_holding("starting"), music, alerts, mic),
+        "Gaming": (*_gaming(), *live),
+        "Just Chatting": (*_just_chatting(), *live),
+        "React": (*_react(), *live),
+        "BRB": (Item(GAME_BLUR, FULL), *_holding("brb"), music, alerts),
+        "Ending": (*_holding("ending"), music, alerts, mic),
+        "Privacy": (Item(SCREEN["privacy"], FULL), music),
     }
