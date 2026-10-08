@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+config/kit.json
+overlays/config.js
+overlays/screen-*.html
+assets/cam-mask.png
+out/
+music/
+.DS_Store

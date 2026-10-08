@@ -1,0 +1,11 @@
+{
+  "twitch_login": "your_twitch_login",
+  "display_name": "YourName",
+  "socials": ["twitch.tv/your_twitch_login", "!discord", "youtube.com/@yourname"],
+  "starting_minutes": 5,
+  "chat_url": "https://www.giambaj.it/twitch/jchat/v2/?channel=your_twitch_login",
+  "streamelements_alertbox_url": "",
+  "cam_device_name": "oscar Camera",
+  "mic_device_name": "oscar Microphone",
+  "music_file": "~/Projects/obs-stream-kit/music/streambeats.mp3"
+}
