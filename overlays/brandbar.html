@@ -23,7 +23,9 @@
   function tick() {
     var i = KitLib.rotateIndex(items.length, Date.now(), 8000);
     if (i === last) return;
+    var first = last === -1;
     last = i;
+    if (first) { el.textContent = items[i]; return; }
     el.style.opacity = 0;
     setTimeout(function () { el.textContent = items[i]; el.style.opacity = 1; }, 300);
   }
