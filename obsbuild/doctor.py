@@ -16,6 +16,10 @@ def doctor_checks(c) -> list[tuple[bool, str]]:
     for label, req, key, kind in kinds:
         present = kind in c.call(req)[key]
         out.append((present, f"{label} kind {kind} {'loaded' if present else 'missing — plugin not installed'}"))
+    t = c.call("GetCurrentSceneTransition")
+    ok = t.get("transitionKind") == MOVE_TRANSITION_KIND
+    out.append((ok, f"current transition {t.get('transitionName')} "
+                    f"{t.get('transitionDuration')} ms" + ("" if ok else " (want Move — run finish)")))
     special = c.call("GetSpecialInputs")
     for slot in ("desktop1", "desktop2", "mic1", "mic2", "mic3", "mic4"):
         name = special.get(slot)

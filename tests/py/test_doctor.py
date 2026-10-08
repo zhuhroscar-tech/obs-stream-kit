@@ -8,6 +8,13 @@ def test_all_green_on_a_correct_setup(fake):
     assert all(ok for ok, _ in doctor_checks(fake))
 
 
+def test_flags_wrong_current_transition(fake):
+    fake.transition = {"transitionKind": "fade_transition", "transitionName": "Fade",
+                       "transitionDuration": 300}
+    failed = [msg for ok, msg in doctor_checks(fake) if not ok]
+    assert any("Move" in m for m in failed)
+
+
 def test_flags_global_mic_duplicate_and_missing_plugin(fake):
     fake.special["mic1"] = "Mic/Aux"
     fake.kinds["filter"] = []

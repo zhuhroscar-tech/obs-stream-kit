@@ -19,6 +19,8 @@ class FakeObs:
         self.kinds = {"input": ["source-clone", "browser_source"], "filter": ["obs_composite_blur"],
                       "transition": ["move_transition", "fade_transition"]}
         self.calls = []
+        self.transition = {"transitionKind": "move_transition", "transitionName": "Move",
+                           "transitionDuration": 450}
         self._next = 1
 
     def call(self, req, data=None):
@@ -90,6 +92,7 @@ class FakeObs:
     def _GetTransitionKindList(self, d): return {"transitionKinds": self.kinds["transition"]}
     def _GetSpecialInputs(self, d): return dict(self.special)
     def _GetVideoSettings(self, d): return dict(self.video)
+    def _GetCurrentSceneTransition(self, d): return dict(self.transition)
 
 
 @pytest.fixture
